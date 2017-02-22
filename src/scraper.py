@@ -35,6 +35,7 @@ def get_inspection_page(**kwargs):
     response = requests.get(url, params=parameters)
     return response.content, response.encoding
 
+
 def load_inspection_page(**kwargs):
     """Load a recorded search response."""
     with open('inspection_page.html', 'r') as file:
@@ -50,12 +51,13 @@ def parse_source(html, encoding='utf-8'):
 
 
 def extract_data_listings(html):
+    """Compile raw data listings."""
     id_finder = re.compile(r'PR[\d]+~')
     return html.find_all('div', id=id_finder)
 
 
 def has_two_tds(elem):
-    """Check if element is a table with two <td>s """
+    """Check if element is a table with two <td>s."""
     is_tr = elem.name == 'tr'
     td_children = elem.find_all('td', recursive=False)
     has_two = len(td_children) == 2
@@ -63,6 +65,7 @@ def has_two_tds(elem):
 
 
 def clean_data(td):
+    """Remove unwanted whitespace."""
     data = td.string
     try:
         return data.strip(" \n:-")
@@ -113,7 +116,7 @@ def extract_score_data(elem):
             total += intval
             high_score = intval if intval > high_score else high_score
     if samples:
-        average = total/float(samples)
+        average = total / float(samples)
     data = {
         u'Average Score': average,
         u'High Score': high_score,
@@ -122,7 +125,7 @@ def extract_score_data(elem):
     return data
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     kwargs = {
         'Inspection_Start': '2/1/2013',
         'Inspection_End': '2/1/2015',
@@ -134,11 +137,6 @@ if __name__=="__main__":
         html, encoding = get_inspection_page(**kwargs)
     doc = parse_source(html, encoding)
     listings = extract_data_listings(doc)
-    # for listing in listings[:5]:
-    #     metadata = extract_restaurant_metadata(listing)
-    #     inspection_rows = listing.find_all(is_inspection_row)
-    #     for row in inspection_rows:
-    #         print(row.text)
     for listing in listings:
         metadata = extract_restaurant_metadata(listing)
         inspection_row = listing.find_all(is_inspection_row)
